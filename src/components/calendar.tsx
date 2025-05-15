@@ -32,20 +32,23 @@ export function Calendar() {
   const [selectedDateEvents, setSelectedDateEvents] = useState<Event[]>([])
 
   // Load events from localStorage on component mount
-  useEffect(() => {
-    const savedEvents = localStorage.getItem("calendar-events")
-    if (savedEvents) {
-      try {
-        const parsedEvents = JSON.parse(savedEvents).map((event: any) => ({
-          ...event,
-          date: new Date(event.date),
-        }))
-        setEvents(parsedEvents)
-      } catch (error) {
-        console.error("Error parsing saved events:", error)
-      }
+  type RawEvent = Omit<Event, "date"> & { date: string }
+
+useEffect(() => {
+  const savedEvents = localStorage.getItem("calendar-events")
+  if (savedEvents) {
+    try {
+      const parsedEvents = JSON.parse(savedEvents).map((event: RawEvent) => ({
+        ...event,
+        date: new Date(event.date),
+      }))
+      setEvents(parsedEvents)
+    } catch (error) {
+      console.error("Error parsing saved events:", error)
     }
-  }, [])
+  }
+}, [])
+
 
   // Save events to localStorage whenever they change
   useEffect(() => {
