@@ -161,15 +161,15 @@ function Calendar() {
     setEvents(events.filter((event) => event.id !== id))
   }
 
-  // Function to highlight dates with events
-const getDayClass = (day: Date) => {
-  const hasEvent = events.some((event) => {
-    const eventDate = new Date(event.date)
-    return eventDate.toDateString() === day.toDateString()
-  })
-  // Cores mais escuras para dias com eventos
-  return hasEvent ? "bg-blue-600 dark:bg-blue-100 rounded-full text-white" : "";
-}
+//   // Function to highlight dates with events
+// const getDayClass = (day: Date) => {
+//   const hasEvent = events.some((event) => {
+//     const eventDate = new Date(event.date)
+//     return eventDate.toDateString() === day.toDateString()
+//   })
+//   // Cores mais escuras para dias com eventos
+//   return hasEvent ? "bg-blue-600 dark:bg-blue-100 rounded-full text-white" : "";
+// }
 
 return (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
