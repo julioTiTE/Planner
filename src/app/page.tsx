@@ -162,163 +162,189 @@ function Calendar() {
   }
 
   // Function to highlight dates with events
-  const getDayClass = (day: Date) => {
-    const hasEvent = events.some((event) => {
-      const eventDate = new Date(event.date)
-      return eventDate.toDateString() === day.toDateString()
-    })
-    return hasEvent ? "bg-blue-100 dark:bg-blue-900 rounded-full" : "";
-  }
+const getDayClass = (day: Date) => {
+  const hasEvent = events.some((event) => {
+    const eventDate = new Date(event.date)
+    return eventDate.toDateString() === day.toDateString()
+  })
+  // Cores mais escuras para dias com eventos
+  return hasEvent ? "bg-blue-600 dark:bg-blue-100 rounded-full text-white" : "";
+}
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-1 bg-blue-50 dark:bg-gray-900 p-4 rounded-lg border border-blue-800 dark:border-blue-800">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl font-semibold text-blue-500 dark:text-blue-300">Calendário</h2>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-1 bg-white dark:bg-gray-800">
-                <PlusCircle className="h-4 w-4" />
-                <span>Evento</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Evento</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Título</Label>
-                  <Input
-                    id="title"
-                    value={newEvent.title}
-                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                    placeholder="Título do evento"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    value={newEvent.description}
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    placeholder="Descrição do evento"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="color">Cor</Label>
-                  <div className="flex gap-2">
-                    {["#FF5A5F", "#00A699", "#FC642D", "#8A4F7D", "#FF9E80"].map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={`w-8 h-8 rounded-full ${
-                          newEvent.color === color ? "ring-2 ring-offset-2 ring-black dark:ring-white" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setNewEvent({ ...newEvent, color })}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <Button onClick={handleAddEvent}>Adicionar Evento</Button>
+return (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="md:col-span-1 bg-blue-50 dark:bg-gray-900 p-4 rounded-lg border border-blue-800 dark:border-blue-800">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-blue-00 dark:text-blue-500">Calendário</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-1 bg-white dark:bg-gray-800">
+              <PlusCircle className="h-4 w-4" />
+              <span>Evento</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Adicionar Novo Evento</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Título</Label>
+                <Input
+                  id="title"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                  placeholder="Título do evento"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <CalendarUI
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          className="rounded-md border"
-          modifiers={{
-        customStyles: events.map((event) => new Date(event.date)),
-          }}
-
-          modifiersClassNames={{
-            customStyles: "bg-blue-100 dark:bg-blue-900 rounded-full",
-          }}
-          components={{
-            DayContent: (props) => <div className={`${getDayClass(props.date)}`}>{props.date.getDate()}</div>,
-          }}
-        />
-        <div className="mt-4 flex items-center justify-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Eventos</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="md:col-span-2">
-        <Card>
-          <CardHeader className="bg-gradient-to-r from-blue-100 to-blue-300 dark:from-blue-800 dark:to-blue-900">
-            <CardTitle className="flex items-center justify-between">
-              <span>
-                {date
-                  ? date.toLocaleDateString("pt-BR", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "Selecione uma data"}
-              </span>
-              <span className="text-sm bg-white dark:bg-gray-800 px-2 py-1 rounded-full">
-                {selectedDateEvents.length} evento(s)
-              </span>
-            </CardTitle>
-            <CardDescription>Gerencie seus eventos para esta data</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {selectedDateEvents.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                <p className="text-gray-500 dark:text-gray-400">Nenhum evento para esta data</p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => {
-                    setNewEvent({ ...newEvent, date: date || new Date() })
-                    setIsDialogOpen(true)
-                  }}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Adicionar Evento
-                </Button>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  placeholder="Descrição do evento"
+                />
               </div>
-            ) : (
-              <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-4">
-                  {selectedDateEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 relative"
-                      style={{ borderLeftColor: event.color, borderLeftWidth: "4px" }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-lg">{event.title}</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
-                        </Button>
-                      </div>
-                      {event.description && (
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">{event.description}</p>
-                      )}
-                    </div>
+              <div className="grid gap-2">
+                <Label htmlFor="color">Cor</Label>
+                <div className="flex gap-2">
+                  {["#FF5A5F", "#00A699", "#FC642D", "#8A4F7D", "#FF9E80"].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-8 h-8 rounded-full ${
+                        newEvent.color === color ? "ring-2 ring-offset-2 ring-black dark:ring-white" : ""
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setNewEvent({ ...newEvent, color })}
+                    />
                   ))}
                 </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+              </div>
+              <Button onClick={handleAddEvent}>Adicionar Evento</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <CalendarUI
+        mode="single"
+        selected={date}
+        onSelect={setDate}
+        className="rounded-md border"
+        modifiers={{
+          customStyles: events.map((event) => new Date(event.date)),
+        }}
+        modifiersClassNames={{
+          // Cor mais escura e texto branco para dias com eventos
+          customStyles: "bg-blue-300 dark:bg-blue-700 rounded-full text-white",
+        }}
+        components={{
+          DayContent: (props) => {
+            // Verificando se tem evento neste dia
+            const hasEvent = events.some((event) => {
+              const eventDate = new Date(event.date)
+              return eventDate.toDateString() === props.date.toDateString()
+            })
+            
+            // Verificando se é o dia selecionado
+            const isSelected = date && date.toDateString() === props.date.toDateString()
+            
+            // Aplicando classes customizadas baseadas nas condições
+            let className = ""
+            
+            if (hasEvent) {
+              // Dia com evento (não selecionado): azul escuro com texto branco
+              className = "bg-blue-300 dark:bg-blue-700 text-white"
+            }
+            
+            if (isSelected && hasEvent) {
+              // Dia com evento E selecionado: mantém texto preto para contraste 
+              // com o fundo vermelho do dia selecionado
+              className = "text-black"
+            }
+            
+            return <div className={`${className} rounded-full`}>{props.date.getDate()}</div>
+          },
+        }}
+      />
+      <div className="mt-4 flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-blue-800"></div>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Eventos</span>
+        </div>
       </div>
     </div>
-  )
+
+    <div className="md:col-span-2">
+      <Card>
+        <CardHeader className="bg-gradient-to-r from-blue-300 to-blue-300 dark:from-blue-800 dark:to-blue-900">
+          <CardTitle className="flex items-center justify-between">
+            <span>
+              {date
+                ? date.toLocaleDateString("pt-BR", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "Selecione uma data"}
+            </span>
+            <span className="text-sm bg-white dark:bg-gray-800 px-2 py-1 rounded-full">
+              {selectedDateEvents.length} evento(s)
+            </span>
+          </CardTitle>
+          <CardDescription>Gerencie seus eventos para esta data</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {selectedDateEvents.length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400">Nenhum evento para esta data</p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => {
+                  setNewEvent({ ...newEvent, date: date || new Date() })
+                  setIsDialogOpen(true)
+                }}
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Adicionar Evento
+              </Button>
+            </div>
+          ) : (
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-4">
+                {selectedDateEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 relative"
+                    style={{ borderLeftColor: event.color, borderLeftWidth: "4px" }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium text-lg">{event.title}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
+                      </Button>
+                    </div>
+                    {event.description && (
+                      <p className="mt-2 text-gray-600 dark:text-gray-400">{event.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+)
 }
 
 // Componente Planner

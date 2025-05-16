@@ -31,31 +31,27 @@ export function Calendar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedDateEvents, setSelectedDateEvents] = useState<Event[]>([])
 
-  // Load events from localStorage on component mount
   type RawEvent = Omit<Event, "date"> & { date: string }
 
-useEffect(() => {
-  const savedEvents = localStorage.getItem("calendar-events")
-  if (savedEvents) {
-    try {
-      const parsedEvents = JSON.parse(savedEvents).map((event: RawEvent) => ({
-        ...event,
-        date: new Date(event.date),
-      }))
-      setEvents(parsedEvents)
-    } catch (error) {
-      console.error("Error parsing saved events:", error)
+  useEffect(() => {
+    const savedEvents = localStorage.getItem("calendar-events")
+    if (savedEvents) {
+      try {
+        const parsedEvents = JSON.parse(savedEvents).map((event: RawEvent) => ({
+          ...event,
+          date: new Date(event.date),
+        }))
+        setEvents(parsedEvents)
+      } catch (error) {
+        console.error("Error parsing saved events:", error)
+      }
     }
-  }
-}, [])
+  }, [])
 
-
-  // Save events to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("calendar-events", JSON.stringify(events))
   }, [events])
 
-  // Update selected date events whenever date or events change
   useEffect(() => {
     if (date) {
       const dateEvents = events.filter((event) => event.date.toDateString() === date.toDateString())
@@ -85,7 +81,6 @@ useEffect(() => {
     setEvents(events.filter((event) => event.id !== id))
   }
 
-  // Function to highlight dates with events
   const getDayClass = (day: Date) => {
     const hasEvent = events.some((event) => event.date.toDateString() === day.toDateString())
     return hasEvent ? "bg-pink-100 dark:bg-pink-900 rounded-full" : ""
@@ -133,9 +128,7 @@ useEffect(() => {
                       <button
                         key={color}
                         type="button"
-                        className={`w-8 h-8 rounded-full ${
-                          newEvent.color === color ? "ring-2 ring-offset-2 ring-black dark:ring-white" : ""
-                        }`}
+                        className={`w-8 h-8 rounded-full ${newEvent.color === color ? "ring-2 ring-offset-2 ring-black dark:ring-white" : ""}`}
                         style={{ backgroundColor: color }}
                         onClick={() => setNewEvent({ ...newEvent, color })}
                       />
@@ -147,22 +140,23 @@ useEffect(() => {
             </DialogContent>
           </Dialog>
         </div>
+
         <CalendarUI
           mode="single"
           selected={date}
           onSelect={setDate}
           className="rounded-md border"
           modifiers={{
-        customStyles: events.map((event) => new Date(event.date)),
-         }}
-
+            highlighted: events.map((event) => event.date),
+          }}
           modifiersClassNames={{
-            customStyles: "bg-pink-100 dark:bg-pink-900 rounded-full",
+            highlighted: "bg-pink-100 dark:bg-pink-400 rounded-full",
           }}
           components={{
             DayContent: (props) => <div className={`${getDayClass(props.date)}`}>{props.date.getDate()}</div>,
           }}
         />
+
         <div className="mt-4 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-pink-400"></div>
@@ -193,7 +187,7 @@ useEffect(() => {
           </CardHeader>
           <CardContent className="pt-6">
             {selectedDateEvents.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+              <div className="text-center py-8 border-2 border-dashed border-gray-500 dark:border-gray-700 rounded-lg">
                 <p className="text-gray-500 dark:text-gray-400">Nenhum evento para esta data</p>
                 <Button
                   variant="outline"
