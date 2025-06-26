@@ -1,4 +1,4 @@
-import { getDbConnection, query } from '@/lib/database/config'
+import { query } from '@/lib/database/config'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import {
@@ -325,18 +325,19 @@ export class DatabaseService {
   }
 
   static async deleteEvent(userId: string, eventId: string): Promise<boolean> {
-    try {
-      const result = await query(
-        'DELETE FROM events WHERE id = $1 AND user_id = $2',
-        [eventId, userId]
-      )
-      
-      return result.rowCount > 0
-    } catch (error) {
-      console.error('Erro ao deletar evento:', error)
-      throw error
-    }
+  try {
+    const result = await query(
+      'DELETE FROM events WHERE id = $1 AND user_id = $2',
+      [eventId, userId]
+    )
+
+    return (result.rowCount ?? 0) > 0
+  } catch (error) {
+    console.error('Erro ao deletar evento:', error)
+    throw error
   }
+}
+
 
   // ===== ESTATÍSTICAS =====
   static async getUserStats(userId: string): Promise<UserStats> {

@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg'
+import { Pool, PoolClient, QueryResult } from 'pg'
 
 // Configuração do banco PostgreSQL (Supabase)
 const dbConfig = {
@@ -47,7 +47,10 @@ export async function closeConnection(): Promise<void> {
 }
 
 // Helper para executar queries simples
-export async function query(text: string, params?: any[]): Promise<any> {
+export async function query(
+  text: string,
+  params?: unknown[]
+): Promise<QueryResult<any>> {
   const client = await getClient()
   try {
     const result = await client.query(text, params)
