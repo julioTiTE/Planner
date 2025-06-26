@@ -2,27 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { DatabaseService } from '@/lib/services/database'
 import { UpdateEventRequest } from '@/lib/types/database'
 
+// Definindo o tipo do contexto
+interface RouteContext {
+  params: Promise<{ id: string }> | { id: string }
+}
+
 // PUT /api/events/[id] - Atualizar evento
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
+    // Aguarda os params caso sejam uma Promise (Next.js 15+)
+    const params = await Promise.resolve(context.params)
+    
     const body = await request.json()
     const { userId, ...eventData }: { userId: string } & Partial<UpdateEventRequest> = body
-
+    
     if (!userId) {
       return NextResponse.json(
         { error: 'userId é obrigatório' },
         { status: 400 }
       )
     }
-
+    
     const updateData: UpdateEventRequest = {
       id: params.id,
       ...eventData
     }
-
+    
     const event = await DatabaseService.updateEvent(userId, updateData)
     
     return NextResponse.json({ event })
@@ -35,7 +43,6 @@ export async function PUT(
         { status: 404 }
       )
     }
-
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -46,19 +53,22 @@ export async function PUT(
 // DELETE /api/events/[id] - Deletar evento
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
+    // Aguarda os params caso sejam uma Promise (Next.js 15+)
+    const params = await Promise.resolve(context.params)
+    
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
-
+    
     if (!userId) {
       return NextResponse.json(
         { error: 'userId é obrigatório' },
         { status: 400 }
       )
     }
-
+    
     const deleted = await DatabaseService.deleteEvent(userId, params.id)
     
     if (!deleted) {
@@ -67,7 +77,7 @@ export async function DELETE(
         { status: 404 }
       )
     }
-
+    
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Erro ao deletar evento:', error)
