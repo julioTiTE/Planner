@@ -48,8 +48,9 @@ export default function LoginForm() {
 
       // Redireciona para o planner
       router.push("/")
-    } catch (err: any) {
-      setError(err.message || "Falha no login. Tente novamente.")
+    } catch (error: unknown) { // ✅ MUDANÇA: any → unknown
+      const errorMessage = error instanceof Error ? error.message : "Falha no login. Tente novamente."
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

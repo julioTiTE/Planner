@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { Calendar as CalendarUI } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
