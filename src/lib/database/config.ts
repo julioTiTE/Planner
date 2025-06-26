@@ -47,10 +47,7 @@ export async function closeConnection(): Promise<void> {
 }
 
 // Helper para executar queries simples
-export async function query(
-  text: string,
-  params?: unknown[]
-): Promise<QueryResult<any>> {
+export async function query(text: string, params?: any[]): Promise<{ rows: any[]; rowCount: number | null }> {
   const client = await getClient()
   try {
     const result = await client.query(text, params)
