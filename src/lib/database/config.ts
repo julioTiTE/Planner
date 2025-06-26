@@ -1,46 +1,44 @@
-import sql from 'mssql'
+import { Pool, PoolClient } from 'pg'
 
-// Configuração do banco de dados para autenticação SQL
-const dbConfig: sql.config = {
-  server: process.env.DB_SERVER || 'AR-PDBITP2-0007',
-  database: process.env.DB_NAME || 'planner_system', // ✅ Nome correto do banco
-  user: process.env.DB_USER || 'meuapp_user',        // ✅ Usuário SQL
-  password: process.env.DB_PASSWORD || 'MeuPlanner123', // ✅ Senha SQL
-  options: {
-    encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: process.env.DB_TRUST_CERT === 'true',
-    enableArithAbort: true,
-    requestTimeout: 30000,
-    connectTimeout: 30000,
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
+// Configuração do banco PostgreSQL (Supabase)
+const dbConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 }
 
-let pool: sql.ConnectionPool | null = null
+let pool: Pool | null = null
 
-export async function getDbConnection(): Promise<sql.ConnectionPool> {
+export async function getDbConnection(): Promise<Pool> {
   try {
     if (pool) return pool
     
-    pool = await new sql.ConnectionPool(dbConfig).connect()
-    console.log('✅ Conectado ao banco de dados SQL Server')
+    pool = new Pool(dbConfig)
+    
+    // Testa a conexão
+    const client = await pool.connect()
+    console.log('✅ Conectado ao banco PostgreSQL (Supabase)')
+    client.release()
+    
     return pool
   } catch (error) {
-    console.error('❌ Erro ao conectar com o banco de dados:', error)
+    console.error('❌ Erro ao conectar com o banco PostgreSQL:', error)
     throw error
   }
+}
+
+export async function getClient(): Promise<PoolClient> {
+  const connection = await getDbConnection()
+  return connection.connect()
 }
 
 export async function closeConnection(): Promise<void> {
   try {
     if (pool) {
-      await pool.close()
+      await pool.end()
       pool = null
-      console.log('✅ Conexão com banco fechada')
+      console.log('✅ Conexão com PostgreSQL fechada')
     }
   } catch (error) {
     console.error('❌ Erro ao fechar conexão:', error)
@@ -48,4 +46,13 @@ export async function closeConnection(): Promise<void> {
   }
 }
 
-export { sql }
+// Helper para executar queries simples
+export async function query(text: string, params?: any[]): Promise<any> {
+  const client = await getClient()
+  try {
+    const result = await client.query(text, params)
+    return result
+  } finally {
+    client.release()
+  }
+}

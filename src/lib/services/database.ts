@@ -1,6 +1,6 @@
-import { getDbConnection, sql } from '@/lib/database/config' // ✅ Ajustar o caminho
+import { getDbConnection, query } from '@/lib/database/config'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken' // ✅ Adicionar JWT
+import jwt from 'jsonwebtoken'
 import {
   User,
   Event,
@@ -16,21 +16,20 @@ export class DatabaseService {
   // ===== USUÁRIOS =====
   static async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('name', sql.VarChar(100), userData.name)
-        .input('email', sql.VarChar(150), userData.email)
-        .input('password_hash', sql.VarChar(255), userData.password_hash)
-        .input('avatar_url', sql.VarChar(500), userData.avatar_url)
-        .input('timezone', sql.VarChar(50), userData.timezone)
-        .input('is_active', sql.Bit, userData.is_active)
-        .query(`
-          INSERT INTO users (name, email, password_hash, avatar_url, timezone, is_active)
-          OUTPUT INSERTED.*
-          VALUES (@name, @email, @password_hash, @avatar_url, @timezone, @is_active)
-        `)
+      const result = await query(`
+        INSERT INTO users (name, email, password_hash, avatar_url, timezone, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [
+        userData.name,
+        userData.email,
+        userData.password_hash,
+        userData.avatar_url,
+        userData.timezone,
+        userData.is_active
+      ])
       
-      return result.recordset[0]
+      return result.rows[0]
     } catch (error) {
       console.error('Erro ao criar usuário:', error)
       throw error
@@ -39,12 +38,12 @@ export class DatabaseService {
 
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('email', sql.VarChar(150), email)
-        .query('SELECT * FROM users WHERE email = @email AND is_active = 1')
+      const result = await query(
+        'SELECT * FROM users WHERE email = $1 AND is_active = true',
+        [email]
+      )
       
-      return result.recordset[0] || null
+      return result.rows[0] || null
     } catch (error) {
       console.error('Erro ao buscar usuário por email:', error)
       throw error
@@ -53,19 +52,19 @@ export class DatabaseService {
 
   static async getUserById(id: string): Promise<User | null> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('id', sql.UniqueIdentifier, id)
-        .query('SELECT * FROM users WHERE id = @id AND is_active = 1')
+      const result = await query(
+        'SELECT * FROM users WHERE id = $1 AND is_active = true',
+        [id]
+      )
       
-      return result.recordset[0] || null
+      return result.rows[0] || null
     } catch (error) {
       console.error('Erro ao buscar usuário por ID:', error)
       throw error
     }
   }
 
-  // ===== AUTENTICAÇÃO ===== ✅ CORRIGIDO
+  // ===== AUTENTICAÇÃO =====
   static async authenticateUser(email: string, password: string): Promise<{
     success: boolean
     user?: User
@@ -117,11 +116,11 @@ export class DatabaseService {
   // ===== CATEGORIAS =====
   static async getCategories(): Promise<Category[]> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .query('SELECT * FROM categories ORDER BY is_default DESC, name ASC')
+      const result = await query(
+        'SELECT * FROM categories ORDER BY is_default DESC, name ASC'
+      )
       
-      return result.recordset
+      return result.rows
     } catch (error) {
       console.error('Erro ao buscar categorias:', error)
       throw error
@@ -130,8 +129,6 @@ export class DatabaseService {
 
   static async createDefaultCategories(): Promise<void> {
     try {
-      const pool = await getDbConnection()
-      
       const defaultCategories = [
         { name: 'Trabalho', color_class: 'bg-blue-500', border_class: 'border-blue-500', hex_color: '#3B82F6', is_default: true },
         { name: 'Pessoal', color_class: 'bg-green-500', border_class: 'border-green-500', hex_color: '#10B981', is_default: true },
@@ -142,17 +139,17 @@ export class DatabaseService {
       ]
 
       for (const category of defaultCategories) {
-        await pool.request()
-          .input('name', sql.VarChar(50), category.name)
-          .input('color_class', sql.VarChar(50), category.color_class)
-          .input('border_class', sql.VarChar(50), category.border_class)
-          .input('hex_color', sql.Char(7), category.hex_color)
-          .input('is_default', sql.Bit, category.is_default)
-          .query(`
-            IF NOT EXISTS (SELECT 1 FROM categories WHERE name = @name)
-            INSERT INTO categories (name, color_class, border_class, hex_color, is_default)
-            VALUES (@name, @color_class, @border_class, @hex_color, @is_default)
-          `)
+        await query(`
+          INSERT INTO categories (name, color_class, border_class, hex_color, is_default)
+          SELECT $1, $2, $3, $4, $5
+          WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = $1)
+        `, [
+          category.name,
+          category.color_class,
+          category.border_class,
+          category.hex_color,
+          category.is_default
+        ])
       }
     } catch (error) {
       console.error('Erro ao criar categorias padrão:', error)
@@ -163,34 +160,33 @@ export class DatabaseService {
   // ===== EVENTOS =====
   static async createEvent(userId: string, eventData: CreateEventRequest): Promise<Event> {
     try {
-      const pool = await getDbConnection()
-      
       // Buscar categoria padrão se não fornecida
       let categoryId = eventData.category_id
       if (!categoryId) {
-        const defaultCategory = await pool.request()
-          .query('SELECT TOP 1 id FROM categories WHERE is_default = 1 ORDER BY name')
+        const defaultCategory = await query(
+          'SELECT id FROM categories WHERE is_default = true ORDER BY name LIMIT 1'
+        )
         
-        categoryId = defaultCategory.recordset[0]?.id
+        categoryId = defaultCategory.rows[0]?.id
       }
 
-      const result = await pool.request()
-        .input('user_id', sql.UniqueIdentifier, userId)
-        .input('category_id', sql.UniqueIdentifier, categoryId)
-        .input('title', sql.VarChar(200), eventData.title)
-        .input('description', sql.NVarChar(sql.MAX), eventData.description)
-        .input('event_date', sql.Date, eventData.event_date)
-        .input('event_time', sql.Time, eventData.event_time)
-        .input('event_type', sql.VarChar(20), eventData.event_type)
-        .input('priority', sql.Int, eventData.priority || 2)
-        .input('reminder_minutes', sql.Int, eventData.reminder_minutes)
-        .query(`
-          INSERT INTO events (user_id, category_id, title, description, event_date, event_time, event_type, priority, reminder_minutes)
-          OUTPUT INSERTED.*
-          VALUES (@user_id, @category_id, @title, @description, @event_date, @event_time, @event_type, @priority, @reminder_minutes)
-        `)
+      const result = await query(`
+        INSERT INTO events (user_id, category_id, title, description, event_date, event_time, event_type, priority, reminder_minutes)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *
+      `, [
+        userId,
+        categoryId,
+        eventData.title,
+        eventData.description,
+        eventData.event_date,
+        eventData.event_time,
+        eventData.event_type,
+        eventData.priority || 2,
+        eventData.reminder_minutes
+      ])
       
-      return result.recordset[0]
+      return result.rows[0]
     } catch (error) {
       console.error('Erro ao criar evento:', error)
       throw error
@@ -199,38 +195,37 @@ export class DatabaseService {
 
   static async getUserEvents(userId: string, startDate?: string, endDate?: string): Promise<EventWithCategory[]> {
     try {
-      const pool = await getDbConnection()
-      
-      let query = `
+      let queryText = `
         SELECT 
           e.*,
           c.name as category_name,
           c.color_class as category_color_class,
           c.border_class as category_border_class,
-          c.hex_color as category_hex_color
+          c.hex_color as category_hex_color,
+          c.is_default as category_is_default,
+          c.created_at as category_created_at
         FROM events e
         INNER JOIN categories c ON e.category_id = c.id
-        WHERE e.user_id = @user_id
+        WHERE e.user_id = $1
       `
       
-      const request = pool.request()
-        .input('user_id', sql.UniqueIdentifier, userId)
+      const params = [userId]
 
       if (startDate) {
-        query += ' AND e.event_date >= @start_date'
-        request.input('start_date', sql.Date, startDate)
+        queryText += ' AND e.event_date >= $' + (params.length + 1)
+        params.push(startDate)
       }
 
       if (endDate) {
-        query += ' AND e.event_date <= @end_date'
-        request.input('end_date', sql.Date, endDate)
+        queryText += ' AND e.event_date <= $' + (params.length + 1)
+        params.push(endDate)
       }
 
-      query += ' ORDER BY e.event_date ASC, e.event_time ASC'
+      queryText += ' ORDER BY e.event_date ASC, e.event_time ASC'
 
-      const result = await request.query(query)
+      const result = await query(queryText, params)
       
-      return result.recordset.map(row => ({
+      return result.rows.map((row: any) => ({
         id: row.id,
         user_id: row.user_id,
         category_id: row.category_id,
@@ -251,8 +246,8 @@ export class DatabaseService {
           color_class: row.category_color_class,
           border_class: row.category_border_class,
           hex_color: row.category_hex_color,
-          is_default: false,
-          created_at: new Date()
+          is_default: row.category_is_default,
+          created_at: row.category_created_at
         }
       }))
     } catch (error) {
@@ -263,61 +258,66 @@ export class DatabaseService {
 
   static async updateEvent(userId: string, eventData: UpdateEventRequest): Promise<Event> {
     try {
-      const pool = await getDbConnection()
-      
       const updates = []
-      const request = pool.request()
-        .input('id', sql.UniqueIdentifier, eventData.id)
-        .input('user_id', sql.UniqueIdentifier, userId)
+      const params = [eventData.id, userId]
+      let paramCounter = 2
 
       if (eventData.title !== undefined) {
-        updates.push('title = @title')
-        request.input('title', sql.VarChar(200), eventData.title)
+        paramCounter++
+        updates.push(`title = $${paramCounter}`)
+        params.push(eventData.title)
       }
 
       if (eventData.description !== undefined) {
-        updates.push('description = @description')
-        request.input('description', sql.NVarChar(sql.MAX), eventData.description)
+        paramCounter++
+        updates.push(`description = $${paramCounter}`)
+        params.push(eventData.description)
       }
 
       if (eventData.event_date !== undefined) {
-        updates.push('event_date = @event_date')
-        request.input('event_date', sql.Date, eventData.event_date)
+        paramCounter++
+        updates.push(`event_date = $${paramCounter}`)
+        params.push(eventData.event_date)
       }
 
       if (eventData.event_time !== undefined) {
-        updates.push('event_time = @event_time')
-        request.input('event_time', sql.Time, eventData.event_time)
+        paramCounter++
+        updates.push(`event_time = $${paramCounter}`)
+        params.push(eventData.event_time)
       }
 
       if (eventData.priority !== undefined) {
-        updates.push('priority = @priority')
-        request.input('priority', sql.Int, eventData.priority)
+        paramCounter++
+        updates.push(`priority = ${paramCounter}`)
+        params.push(eventData.priority.toString())
       }
 
       if (eventData.is_completed !== undefined) {
-        updates.push('is_completed = @is_completed')
-        updates.push('completed_at = @completed_at')
-        request.input('is_completed', sql.Bit, eventData.is_completed)
-        request.input('completed_at', sql.DateTimeOffset, eventData.is_completed ? new Date() : null)
+        paramCounter++
+        updates.push(`is_completed = ${paramCounter}`)
+        params.push(eventData.is_completed.toString())
+        
+        paramCounter++
+        updates.push(`completed_at = ${paramCounter}`)
+        params.push(eventData.is_completed ? new Date().toISOString() : '')
       }
 
       if (updates.length === 0) {
         throw new Error('Nenhum campo para atualizar')
       }
 
-      const result = await request.query(`
+      const result = await query(`
         UPDATE events 
-        SET ${updates.join(', ')}, updated_at = SYSDATETIMEOFFSET()
-        OUTPUT INSERTED.*
-        WHERE id = @id AND user_id = @user_id
-      `)
+        SET ${updates.join(', ')}, updated_at = NOW()
+        WHERE id = $1 AND user_id = $2
+        RETURNING *
+      `, params)
       
-      if (result.recordset.length === 0) {
+      if (result.rows.length === 0) {
         throw new Error('Evento não encontrado ou não pertence ao usuário')
       }
 
-      return result.recordset[0]
+      return result.rows[0]
     } catch (error) {
       console.error('Erro ao atualizar evento:', error)
       throw error
@@ -326,13 +326,12 @@ export class DatabaseService {
 
   static async deleteEvent(userId: string, eventId: string): Promise<boolean> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('id', sql.UniqueIdentifier, eventId)
-        .input('user_id', sql.UniqueIdentifier, userId)
-        .query('DELETE FROM events WHERE id = @id AND user_id = @user_id')
+      const result = await query(
+        'DELETE FROM events WHERE id = $1 AND user_id = $2',
+        [eventId, userId]
+      )
       
-      return result.rowsAffected[0] > 0
+      return result.rowCount > 0
     } catch (error) {
       console.error('Erro ao deletar evento:', error)
       throw error
@@ -342,20 +341,17 @@ export class DatabaseService {
   // ===== ESTATÍSTICAS =====
   static async getUserStats(userId: string): Promise<UserStats> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('user_id', sql.UniqueIdentifier, userId)
-        .query(`
-          SELECT 
-            COUNT(*) as total_events,
-            SUM(CASE WHEN event_type = 'task' AND is_completed = 1 THEN 1 ELSE 0 END) as completed_tasks,
-            SUM(CASE WHEN event_type = 'task' AND is_completed = 0 THEN 1 ELSE 0 END) as pending_tasks,
-            (SELECT COUNT(DISTINCT category_id) FROM events WHERE user_id = @user_id) as total_categories
-          FROM events 
-          WHERE user_id = @user_id
-        `)
+      const result = await query(`
+        SELECT 
+          COUNT(*)::integer as total_events,
+          SUM(CASE WHEN event_type = 'task' AND is_completed = true THEN 1 ELSE 0 END)::integer as completed_tasks,
+          SUM(CASE WHEN event_type = 'task' AND is_completed = false THEN 1 ELSE 0 END)::integer as pending_tasks,
+          (SELECT COUNT(DISTINCT category_id)::integer FROM events WHERE user_id = $1) as total_categories
+        FROM events 
+        WHERE user_id = $1
+      `, [userId])
       
-      return result.recordset[0] || {
+      return result.rows[0] || {
         total_events: 0,
         completed_tasks: 0,
         pending_tasks: 0,
@@ -370,12 +366,12 @@ export class DatabaseService {
   // ===== PREFERÊNCIAS =====
   static async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('user_id', sql.UniqueIdentifier, userId)
-        .query('SELECT * FROM user_preferences WHERE user_id = @user_id')
+      const result = await query(
+        'SELECT * FROM user_preferences WHERE user_id = $1',
+        [userId]
+      )
       
-      return result.recordset[0] || null
+      return result.rows[0] || null
     } catch (error) {
       console.error('Erro ao buscar preferências:', error)
       throw error
@@ -384,16 +380,13 @@ export class DatabaseService {
 
   static async createDefaultPreferences(userId: string): Promise<UserPreferences> {
     try {
-      const pool = await getDbConnection()
-      const result = await pool.request()
-        .input('user_id', sql.UniqueIdentifier, userId)
-        .query(`
-          INSERT INTO user_preferences (user_id)
-          OUTPUT INSERTED.*
-          VALUES (@user_id)
-        `)
+      const result = await query(`
+        INSERT INTO user_preferences (user_id)
+        VALUES ($1)
+        RETURNING *
+      `, [userId])
       
-      return result.recordset[0]
+      return result.rows[0]
     } catch (error) {
       console.error('Erro ao criar preferências padrão:', error)
       throw error

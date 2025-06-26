@@ -1,11 +1,10 @@
-// Types baseados no banco de dados SQL Server
-
+// Types baseados no banco de dados PostgreSQL (Supabase)
 export interface User {
-  id: string
+  id: string // UUID
   name: string
   email: string
   password_hash: string
-  avatar_url?: string
+  avatar_url?: string | null
   timezone: string
   created_at: Date
   updated_at: Date
@@ -13,7 +12,7 @@ export interface User {
 }
 
 export interface Category {
-  id: string
+  id: string // UUID
   name: string
   color_class: string
   border_class: string
@@ -23,25 +22,25 @@ export interface Category {
 }
 
 export interface Event {
-  id: string
-  user_id: string
-  category_id: string
+  id: string // UUID
+  user_id: string // UUID
+  category_id: string // UUID
   title: string
-  description?: string
+  description?: string | null
   event_date: Date
-  event_time?: string
+  event_time?: string | null
   event_type: 'event' | 'task'
   is_completed: boolean
   priority: number
-  reminder_minutes?: number
+  reminder_minutes?: number | null
   created_at: Date
   updated_at: Date
-  completed_at?: Date
+  completed_at?: Date | null
 }
 
 export interface UserSession {
-  id: string
-  user_id: string
+  id: string // UUID
+  user_id: string // UUID
   session_token: string
   expires_at: Date
   created_at: Date
@@ -49,8 +48,8 @@ export interface UserSession {
 }
 
 export interface UserPreferences {
-  id: string
-  user_id: string
+  id: string // UUID
+  user_id: string // UUID
   theme: 'light' | 'dark' | 'system'
   default_view: 'calendar' | 'planner'
   notifications_enabled: boolean
