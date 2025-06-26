@@ -6,7 +6,6 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
     "./app/**/*.{js,ts,jsx,tsx}",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./*.{js,ts,jsx,tsx,mdx}"
   ],
   theme: {
     container: {
@@ -20,7 +19,7 @@ module.exports = {
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -61,8 +60,21 @@ module.exports = {
           '2': 'hsl(var(--chart-2))',
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))'
-        }
+          '5': 'hsl(var(--chart-5))',
+        },
+        // Cores adicionais do tema grego
+        "greek-blue": {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
+        },
       },
       keyframes: {
         "accordion-down": {
@@ -73,10 +85,18 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "eye-blink": {
+          "0%, 90%, 100%": { transform: "scaleY(1)" },
+          "95%": { transform: "scaleY(0.1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "eye-blink": "eye-blink 4s ease-in-out infinite",
+      },
+      backgroundImage: {
+        "greek-gradient": "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
       },
     }
   },
