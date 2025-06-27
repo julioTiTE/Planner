@@ -3,7 +3,6 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
 import { Eye, EyeOff, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,6 +30,7 @@ export default function LoginForm() {
         body: JSON.stringify({ email, password }),
       })
 
+           
       if (!response.ok) {
         const errData = await response.json()
         throw new Error(errData.message || "Falha no login")
