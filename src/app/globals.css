@@ -32,7 +32,6 @@
     --chart-4: 240 4.8% 95.9%;
     --chart-5: 240 3.8% 46.1%;
   }
-
   .dark {
     --background: 20 14.3% 4.1%;
     --foreground: 0 0% 95%;
@@ -70,4 +69,508 @@
   body {
     @apply bg-background text-foreground min-h-screen;
   }
+}
+
+/* ========================================
+   ANIMAÇÕES DOS OLHOS GREGOS
+   ======================================== */
+
+/* Floating Animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes float-delayed {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(-3deg);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-reverse {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-25px) rotate(-8deg);
+  }
+}
+
+@keyframes float-gentle {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.1);
+  }
+}
+
+@keyframes float-spiral {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-15px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+  }
+}
+
+@keyframes float-tiny {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  33% {
+    transform: translateY(-8px) translateX(5px);
+  }
+  66% {
+    transform: translateY(-16px) translateX(-3px);
+  }
+}
+
+@keyframes float-micro {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.2);
+  }
+}
+
+@keyframes float-orbit {
+  0% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) translateX(10px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0px) translateX(20px) rotate(180deg);
+  }
+  75% {
+    transform: translateY(10px) translateX(10px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(0px) translateX(0px) rotate(360deg);
+  }
+}
+
+@keyframes float-mystical {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1) opacity(0.5);
+  }
+  50% {
+    transform: translateY(-18px) scale(1.3) opacity(0.8);
+  }
+}
+
+@keyframes float-ethereal {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translateY(-12px) rotate(120deg) scale(1.1);
+  }
+  66% {
+    transform: translateY(-8px) rotate(240deg) scale(0.9);
+  }
+}
+
+@keyframes float-divine {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-20px) translateX(-10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(15px);
+  }
+  75% {
+    transform: translateY(-25px) translateX(-5px);
+  }
+}
+
+@keyframes float-corner {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-22px) rotate(15deg);
+  }
+}
+
+@keyframes float-corner-delayed {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(-12deg);
+  }
+}
+
+/* Blinking Animations for Eyes */
+@keyframes blink {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes blink-slow {
+  0%,
+  85%,
+  100% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes blink-fast {
+  0%,
+  80%,
+  100% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes blink-delayed {
+  0%,
+  88%,
+  100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes blink-mystical {
+  0%,
+  70%,
+  100% {
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes blink-ethereal {
+  0%,
+  75%,
+  100% {
+    opacity: 0.45;
+  }
+  80% {
+    opacity: 0.05;
+  }
+  85% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes blink-divine {
+  0%,
+  82%,
+  100% {
+    opacity: 0.6;
+  }
+  87% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes blink-corner {
+  0%,
+  86%,
+  100% {
+    opacity: 0.7;
+  }
+  91% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes blink-corner-delayed {
+  0%,
+  84%,
+  100% {
+    opacity: 0.75;
+  }
+  89% {
+    opacity: 0.25;
+  }
+}
+
+/* Other animations */
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.1);
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0px);
+  }
+  25% {
+    transform: rotate(2deg) translateX(5px);
+  }
+  75% {
+    transform: rotate(-2deg) translateX(-5px);
+  }
+}
+
+@keyframes sway-gentle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes sway-gentle-delayed {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: translateX(0px) scaleX(1);
+  }
+  50% {
+    transform: translateX(10px) scaleX(1.05);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sparkle-delayed {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(180deg);
+  }
+}
+
+@keyframes sparkle-mystical {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  33% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+  66% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+/* Adicione isto após as variáveis de cores no global.css */
+body {
+  @apply min-h-screen;
+}
+
+
+
+/* ========================================
+   CLASSES DE ANIMAÇÃO
+   ======================================== */
+
+/* Floating Animation Classes */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float-delayed 8s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float-slow 10s ease-in-out infinite;
+}
+.animate-float-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+.animate-float-gentle {
+  animation: float-gentle 9s ease-in-out infinite;
+}
+.animate-float-spiral {
+  animation: float-spiral 12s ease-in-out infinite;
+}
+.animate-float-tiny {
+  animation: float-tiny 5s ease-in-out infinite;
+}
+.animate-float-micro {
+  animation: float-micro 4s ease-in-out infinite;
+}
+.animate-float-orbit {
+  animation: float-orbit 15s linear infinite;
+}
+.animate-float-mystical {
+  animation: float-mystical 8s ease-in-out infinite;
+}
+.animate-float-ethereal {
+  animation: float-ethereal 11s ease-in-out infinite;
+}
+.animate-float-divine {
+  animation: float-divine 13s ease-in-out infinite;
+}
+.animate-float-corner {
+  animation: float-corner 6s ease-in-out infinite;
+}
+.animate-float-corner-delayed {
+  animation: float-corner-delayed 7s ease-in-out infinite 2s;
+}
+
+/* Blinking Animation Classes */
+.animate-blink {
+  animation: blink 4s ease-in-out infinite;
+}
+.animate-blink-slow {
+  animation: blink-slow 6s ease-in-out infinite;
+}
+.animate-blink-fast {
+  animation: blink-fast 3s ease-in-out infinite;
+}
+.animate-blink-delayed {
+  animation: blink-delayed 5s ease-in-out infinite 1s;
+}
+.animate-blink-mystical {
+  animation: blink-mystical 7s ease-in-out infinite;
+}
+.animate-blink-ethereal {
+  animation: blink-ethereal 8s ease-in-out infinite 2s;
+}
+.animate-blink-divine {
+  animation: blink-divine 6s ease-in-out infinite 1.5s;
+}
+.animate-blink-corner {
+  animation: blink-corner 5s ease-in-out infinite;
+}
+.animate-blink-corner-delayed {
+  animation: blink-corner-delayed 6s ease-in-out infinite 3s;
+}
+
+/* Other Animation Classes */
+.animate-bounce-slow {
+  animation: bounce-slow 4s ease-in-out infinite;
+}
+.animate-sway {
+  animation: sway 5s ease-in-out infinite;
+}
+.animate-sway-gentle {
+  animation: sway-gentle 7s ease-in-out infinite;
+}
+.animate-sway-gentle-delayed {
+  animation: sway-gentle-delayed 6s ease-in-out infinite 1s;
+}
+.animate-wave {
+  animation: wave 8s ease-in-out infinite;
+}
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+.animate-sparkle {
+  animation: sparkle 3s ease-in-out infinite;
+}
+.animate-sparkle-delayed {
+  animation: sparkle-delayed 4s ease-in-out infinite 1.5s;
+}
+.animate-sparkle-mystical {
+  animation: sparkle-mystical 5s ease-in-out infinite 2s;
+}
+
+/* ========================================
+   UTILIDADES ADICIONAIS
+   ======================================== */
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }

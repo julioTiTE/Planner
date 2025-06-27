@@ -7,6 +7,7 @@ import { Eye, EyeOff, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function LoginForm() {
@@ -15,6 +16,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -30,7 +32,6 @@ export default function LoginForm() {
         body: JSON.stringify({ email, password }),
       })
 
-           
       if (!response.ok) {
         const errData = await response.json()
         throw new Error(errData.message || "Falha no login")
@@ -38,17 +39,23 @@ export default function LoginForm() {
 
       const data = await response.json()
 
-      // ✅ Armazena o token como cookie (funciona no servidor e cliente)
-      document.cookie = `sessionToken=${data.token}; path=/; max-age=86400; SameSite=Strict; Secure=${location.protocol === 'https:'}`;
+      // Definir tempo de expiração baseado no "lembrar senha"
+      const maxAge = rememberMe ? 86400 * 30 : 86400 // 30 dias ou 1 dia
       
-      // ✅ Também mantém no localStorage como backup
+      // ✅ Armazena o token como cookie
+      document.cookie = `sessionToken=${data.token}; path=/; max-age=${maxAge}; SameSite=Strict; Secure=${location.protocol === 'https:'}`;
+      
+      // ✅ Também mantém no localStorage
       localStorage.setItem("sessionToken", data.token)
+      
+      // ✅ Salvar dados do usuário para exibir nome
+      localStorage.setItem("userData", JSON.stringify(data.user))
       
       console.log("🔍 Token salvo nos cookies e localStorage:", data.token)
 
       // Redireciona para o planner
       router.push("/")
-    } catch (error: unknown) { // ✅ MUDANÇA: any → unknown
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Falha no login. Tente novamente."
       setError(errorMessage)
     } finally {
@@ -114,6 +121,22 @@ export default function LoginForm() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+          </div>
+
+          {/* Checkbox Lembrar Senha */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="remember"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              className="border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <Label
+              htmlFor="remember"
+              className="text-sm text-gray-700 cursor-pointer select-none"
+            >
+              Lembrar por 30 dias
+            </Label>
           </div>
 
           {error && (

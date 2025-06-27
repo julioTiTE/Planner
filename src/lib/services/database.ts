@@ -393,4 +393,101 @@ export class DatabaseService {
       throw error
     }
   }
+
+
+// ===== VERIFICAÇÕES ADICIONAIS =====
+  static async emailExists(email: string): Promise<boolean> {
+    try {
+      const user = await this.getUserByEmail(email)
+      return !!user
+    } catch (error) {
+      console.error('Erro ao verificar email:', error)
+      throw error
+    }
+  }
+
+  static async validateUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<string | null> {
+    // Validações básicas
+    if (!userData.name?.trim()) {
+      return 'Nome é obrigatório'
+    }
+
+    if (!userData.email?.trim()) {
+      return 'Email é obrigatório'
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(userData.email)) {
+      return 'Email inválido'
+    }
+
+    if (!userData.password_hash) {
+      return 'Senha é obrigatória'
+    }
+
+    // Verificar se email já existe
+    const existingUser = await this.getUserByEmail(userData.email)
+    if (existingUser) {
+      return 'Este email já está cadastrado'
+    }
+
+    return null // Sem erros
+  }
+
+
+// ===== RESET DE SENHA =====
+  static async savePasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    try {
+      await query(`
+        INSERT INTO password_reset_tokens (user_id, token, expires_at)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) 
+        DO UPDATE SET token = $2, expires_at = $3, created_at = NOW()
+      `, [userId, token, expiresAt])
+    } catch (error) {
+      console.error('Erro ao salvar token de reset:', error)
+      throw error
+    }
+  }
+
+  static async getPasswordResetToken(token: string): Promise<{ user_id: string; expires_at: Date } | null> {
+    try {
+      const result = await query(
+        'SELECT user_id, expires_at FROM password_reset_tokens WHERE token = $1',
+        [token]
+      )
+      
+      return result.rows[0] || null
+    } catch (error) {
+      console.error('Erro ao buscar token de reset:', error)
+      throw error
+    }
+  }
+
+  static async deletePasswordResetToken(token: string): Promise<void> {
+    try {
+      await query(
+        'DELETE FROM password_reset_tokens WHERE token = $1',
+        [token]
+      )
+    } catch (error) {
+      console.error('Erro ao deletar token de reset:', error)
+      throw error
+    }
+  }
+
+  static async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    try {
+      await query(`
+        UPDATE users 
+        SET password_hash = $1, updated_at = NOW()
+        WHERE id = $2
+      `, [hashedPassword, userId])
+    } catch (error) {
+      console.error('Erro ao atualizar senha:', error)
+      throw error
+    }
+  }
+
+
 }

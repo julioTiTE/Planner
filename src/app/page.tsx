@@ -14,7 +14,51 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Trash2, Edit, Check, X, Moon, Sun } from "lucide-react"
+import { PlusCircle, Trash2, Edit, Check, X, Moon, Sun, LogOut, User } from "lucide-react"
+
+
+// Componente de Olhos Gregos Animados
+function GreekEyes() {
+  return (
+    <>
+      {/* Olhos nos cantos superiores */}
+      <div className="fixed top-4 left-4 z-50 pointer-events-none">
+        <div className="text-5xl animate-float opacity-60">🧿</div>
+      </div>
+      
+      <div className="fixed top-4 right-4 z-50 pointer-events-none">
+        <div className="text-5xl animate-float-delayed opacity-60">🧿</div>
+      </div>
+
+      {/* Olhos nos cantos inferiores */}
+      <div className="fixed bottom-4 left-4 z-40 pointer-events-none">
+        <div className="text-4xl animate-float-corner opacity-50">🧿</div>
+      </div>
+
+      <div className="fixed bottom-4 right-4 z-40 pointer-events-none">
+        <div className="text-4xl animate-float-corner-delayed opacity-50">🧿</div>
+      </div>
+
+      {/* Pequenos olhos nas laterais (bem no canto) */}
+      <div className="fixed top-1/2 left-2 z-30 pointer-events-none">
+        <div className="text-2xl animate-float-mystical opacity-40">🧿</div>
+      </div>
+
+      <div className="fixed top-1/2 right-2 z-30 pointer-events-none">
+        <div className="text-2xl animate-float-ethereal opacity-40">🧿</div>
+      </div>
+
+      {/* Sparkles apenas nos cantos extremos */}
+      <div className="fixed top-20 left-4 z-10 pointer-events-none">
+        <div className="text-lg animate-sparkle opacity-30">✨</div>
+      </div>
+
+      <div className="fixed bottom-20 right-4 z-10 pointer-events-none">
+        <div className="text-lg animate-sparkle-delayed opacity-30">✨</div>
+      </div>
+    </>
+  )
+}
 
 // Tipos
 type Event = {
@@ -41,6 +85,13 @@ type Task = {
   priority: "baixa" | "média" | "alta"
   completed: boolean
 }
+
+type UserData = {
+  name: string
+  email?: string
+  id?: string
+}
+
 
 // Constantes
 const CATEGORIES = ["Trabalho", "Pessoal", "Saúde", "Finanças", "Casa", "Estudos", "Lazer"]
@@ -695,18 +746,89 @@ function Planner() {
   )
 }
 
+
+
+
+
 // Componente principal da página
 export default function Home() {
+  const [userData, setUserData] = useState<UserData | null>(null)
+
+  // Carregar dados do usuário ao montar o componente
+  useEffect(() => {
+    try {
+      const savedUserData = localStorage.getItem("userData")
+      if (savedUserData) {
+        const user = JSON.parse(savedUserData)
+        setUserData(user)
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    // Remove o token do localStorage
+    localStorage.removeItem("sessionToken")
+    localStorage.removeItem("userData") // Remove também os dados do usuário
+    
+    // Remove o cookie de sessão
+    document.cookie = "sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+    
+    // Redireciona para a página de login
+    window.location.href = "/login"
+  }
+
+  // Função para obter o primeiro nome do usuário
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0]
+  }
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-950 p-4 md:p-8">
+     <main className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-300 to-cyan-400 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 p-4 md:p-8">
+       <GreekEyes />
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-blue-400 dark:text-blue-300 flex items-center gap-2">
             <span className="hidden sm:inline">🧿</span> Planner Digital{" "}
             <span className="hidden sm:inline">🧿</span>
           </h1>
-          <ThemeToggle />
+          
+          <div className="flex items-center gap-3">
+            {/* Botão de perfil/usuário com nome */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-full border border-blue-200 dark:border-blue-500">
+              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline">
+                {userData ? `Olá, ${getFirstName(userData.name)}!` : "Bem-vindo!"}
+              </span>
+              {/* Versão mobile - só mostra o primeiro nome */}
+              <span className="text-sm text-gray-700 dark:text-gray-300 sm:hidden">
+                {userData ? getFirstName(userData.name) : "👋"}
+              </span>
+            </div>
+            
+            {/* Toggle tema */}
+            <ThemeToggle />
+            
+            {/* Botão de logout */}
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="icon"
+              className="rounded-full bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:border-red-800"
+              title="Sair"
+            >
+              <LogOut className="h-[1.2rem] w-[1.2rem] text-red-600 dark:text-red-400" />
+              <span className="sr-only">Fazer logout</span>
+            </Button>
+          </div>
         </div>
+
+
+
+
+
+
 
         <div className="relative mb-8 overflow-hidden rounded-lg">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-blue-200 dark:border-blue-500 relative z-10">
@@ -746,3 +868,6 @@ export default function Home() {
       </div>
     </main>
   )}
+
+
+ 
