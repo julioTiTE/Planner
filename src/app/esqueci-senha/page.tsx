@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Mail, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,43 +13,50 @@ import { GreekEyeBackground } from "@/components/greek-eye-background"
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState("")
   const [error, setError] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setMessage("")
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+      // Verificar se o email existe no localStorage
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]")
+      const userExists = existingUsers.some((user: any) => user.email === email)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao processar solicitação")
+      if (!userExists) {
+        setError("Email não encontrado. Verifique o email digitado.")
+        setIsLoading(false)
+        return
       }
 
-      setMessage(data.message)
-      setIsSubmitted(true)
-      
-      // Em desenvolvimento, mostrar o link direto
-      if (process.env.NODE_ENV === 'development' && data.resetLink) {
-        console.log('🔗 Link de reset:', data.resetLink)
-        setMessage(
-          `${data.message}\n\n🔗 Link de desenvolvimento: ${data.resetLink}`
-        )
+      // Se o email existe, gerar um token de redefinição
+      const resetToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+
+      // Salvar o token com o email associado
+      const resetData = {
+        email: email,
+        token: resetToken,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString() // Expira em 1 hora
       }
+
+      // Armazenar no localStorage
+      localStorage.setItem("resetToken", JSON.stringify(resetData))
+
+      // Aguardar um pouco para simular processamento
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Redirecionar para a página de redefinição com o token
+      router.push(`/reset-password?token=${resetToken}`)
 
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erro ao processar solicitação"
-      setError(errorMessage)
+      console.error("Erro ao processar solicitação:", error)
+      setError("Erro ao processar solicitação. Tente novamente.")
     } finally {
       setIsLoading(false)
     }
@@ -69,88 +77,64 @@ export default function ForgotPasswordPage() {
               Esqueceu sua senha?
             </CardTitle>
             <CardDescription className="text-blue-700">
-              Digite seu email para receber um link de redefinição de senha
+              Digite seu email para redefinir sua senha
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {!isSubmitted ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-blue-900 font-medium">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu.email@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="border-blue-200 focus:border-blue-500 focus:ring-blue-500 h-12"
-                  />
-                </div>
-
-                {error && (
-                  <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-center">
-                    <span className="mr-2">⚠️</span>
-                    {error}
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 h-12 text-lg font-medium shadow-lg"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Enviando...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <Send className="mr-2 h-5 w-5" />
-                      Enviar Link
-                    </span>
-                  )}
-                </Button>
-              </form>
-            ) : (
-              <div className="text-center space-y-4">
-                <div className="text-green-600 bg-green-50 p-4 rounded-lg border border-green-200">
-                  <div className="flex items-center justify-center mb-2">
-                    <Mail className="w-6 h-6 mr-2" />
-                    <span className="font-medium">Email enviado!</span>
-                  </div>
-                  <p className="text-sm whitespace-pre-line">{message}</p>
-                </div>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsSubmitted(false)
-                    setEmail("")
-                    setMessage("")
-                  }}
-                  className="w-full"
-                >
-                  Enviar novamente
-                </Button>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-blue-900 font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu.email@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="border-blue-200 focus:border-blue-500 focus:ring-blue-500 h-12"
+                />
               </div>
-            )}
+
+              {error && (
+                <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-center">
+                  <span className="mr-2">⚠️</span>
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 h-12 text-lg font-medium shadow-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Verificando...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <Send className="mr-2 h-5 w-5" />
+                    Continuar
+                  </span>
+                )}
+              </Button>
+            </form>
 
             <div className="text-center">
               <Link 

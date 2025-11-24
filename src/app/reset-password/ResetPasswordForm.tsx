@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +15,7 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
 
   const [token, setToken] = useState("")
+  const [userEmail, setUserEmail] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -22,14 +23,40 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isValidToken, setIsValidToken] = useState(false)
 
-  // Pegar token da URL
+  // Validar token ao carregar a página
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token')
-    if (tokenFromUrl) {
-      setToken(tokenFromUrl)
-    } else {
+    if (!tokenFromUrl) {
       setError("Token de redefinição não encontrado na URL")
+      return
+    }
+
+    setToken(tokenFromUrl)
+
+    try {
+      const resetData = JSON.parse(localStorage.getItem("resetToken") || "{}")
+      
+      if (!resetData.token || resetData.token !== tokenFromUrl) {
+        setError("Token inválido ou expirado")
+        return
+      }
+
+      // Verificar se o token expirou
+      const expiresAt = new Date(resetData.expiresAt)
+      if (new Date() > expiresAt) {
+        setError("Token expirado. Solicite um novo link.")
+        localStorage.removeItem("resetToken")
+        return
+      }
+
+      // Token válido
+      setIsValidToken(true)
+      setUserEmail(resetData.email)
+    } catch (error) {
+      console.error("Erro ao validar token:", error)
+      setError("Erro ao validar token")
     }
   }, [searchParams])
 
@@ -44,6 +71,11 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError("")
 
+    if (!isValidToken) {
+      setError("Token inválido. Solicite um novo link.")
+      return
+    }
+
     // Validações
     const passwordError = validatePassword(newPassword)
     if (passwordError) {
@@ -56,26 +88,23 @@ export default function ResetPasswordPage() {
       return
     }
 
-    if (!token) {
-      setError("Token de redefinição não encontrado")
-      return
-    }
-
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
+      // Atualizar a senha do usuário
+      const users = JSON.parse(localStorage.getItem("users") || "[]")
+      const updatedUsers = users.map((user: any) => {
+        if (user.email === userEmail) {
+          return { ...user, password: newPassword }
+        }
+        return user
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao redefinir senha")
-      }
-
+      localStorage.setItem("users", JSON.stringify(updatedUsers))
+      
+      // Limpar o token usado
+      localStorage.removeItem("resetToken")
+      
       setIsSuccess(true)
       
       // Redirecionar para login após 3 segundos
@@ -84,13 +113,62 @@ export default function ResetPasswordPage() {
       }, 3000)
 
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erro ao redefinir senha"
-      setError(errorMessage)
+      console.error("Erro ao redefinir senha:", error)
+      setError("Erro ao redefinir senha. Tente novamente.")
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Se token inválido ou expirado
+  if (!isValidToken && error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <GreekEyeBackground />
+        <div className="relative z-10 w-full max-w-md">
+          <Card className="shadow-2xl border-red-300 bg-white/95 backdrop-blur-sm">
+            <CardHeader className="space-y-1 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg">
+                  <XCircle className="w-10 h-10 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl font-bold text-red-900 mb-2">
+                Link Inválido
+              </CardTitle>
+              <CardDescription className="text-red-700">
+                {error}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <Link href="/forgot-password">
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  >
+                    Solicitar novo link
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="text-center">
+                <Link 
+                  href="/login" 
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Voltar para o login
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    )
+  }
+
+  // Se sucesso
   if (isSuccess) {
     return (
       <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -132,6 +210,7 @@ export default function ResetPasswordPage() {
     )
   }
 
+  // Formulário de redefinição
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
       <GreekEyeBackground />
@@ -147,7 +226,7 @@ export default function ResetPasswordPage() {
               Redefinir Senha
             </CardTitle>
             <CardDescription className="text-blue-700">
-              Digite sua nova senha para redefinir o acesso à sua conta
+              Digite sua nova senha para {userEmail}
             </CardDescription>
           </CardHeader>
           
@@ -214,7 +293,7 @@ export default function ResetPasswordPage() {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 h-12 text-lg font-medium shadow-lg"
-                disabled={isLoading || !token}
+                disabled={isLoading}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
