@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Meu Organizador
+Aplicação web pessoal de planejamento e organização com calendário interativo, gerenciamento de eventos e sistema de autenticação completo.
 
-## Getting Started
 
-First, run the development server:
+Sobre o Projeto
+Planner pessoal desenvolvido para organização de rotina e compromissos. Oferece uma interface de calendário interativa para criação e gerenciamento de eventos, com autenticação segura por JWT e fluxo completo de recuperação de senha.
 
-```bash
+Funcionalidades
+
+Calendário Interativo — visualização mensal com criação e edição de eventos
+Planner de Tarefas — organização de atividades por data
+Autenticação Completa
+
+Cadastro de usuário
+Login com JWT
+Recuperação de senha por e-mail
+Reset de senha seguro
+
+
+Tema Claro/Escuro — alternância entre temas com persistência
+Keep-Alive automático — rota de cron para manter o servidor ativo em ambientes gratuitos
+
+
+Tecnologias
+CamadaTecnologiaFrontendNext.js 15 (App Router), React, TypeScriptEstilizaçãoTailwind CSS, shadcn/uiBackendNext.js API RoutesBanco de DadosPostgreSQL (Supabase)AutenticaçãoJWT (jsonwebtoken)DeployVercel
+
+Como Rodar Localmente
+Pré-requisitos
+
+Node.js 18+
+Conta no Supabase (ou PostgreSQL local)
+
+Passos
+bash# Clone o repositório
+git clone https://github.com/julioTiTE/meu-organizador.git
+cd meu-organizador
+
+# Instale as dependências
+npm install
+
+# Configure as variáveis de ambiente
+cp .env.local.example .env.local
+# Edite o .env.local com suas credenciais
+
+# Inicie o servidor de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Acesse http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variáveis de Ambiente
+Crie um arquivo .env.local na raiz:
+envDATABASE_URL=postgresql://usuario:senha@host:5432/nome_banco
+JWT_SECRET=seu-jwt-secret-seguro
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Estrutura do Projeto
+src/
+├── app/
+│   ├── api/                  # Endpoints da API
+│   │   ├── events/           # CRUD de eventos
+│   │   ├── user-login/       # Autenticação
+│   │   ├── register/         # Cadastro
+│   │   ├── forgot-password/  # Recuperação de senha
+│   │   ├── reset-password/   # Reset de senha
+│   │   └── cron/keep-alive/  # Manutenção de uptime
+│   ├── login/                # Página de login
+│   ├── cadastro/             # Página de cadastro
+│   ├── esqueci-senha/        # Recuperação de senha
+│   └── reset-password/       # Reset de senha
+└── components/
+    ├── calendar.tsx          # Calendário principal
+    ├── planner.tsx           # Planner de tarefas
+    ├── login-form.tsx        # Formulário de login
+    └── ui/                   # Componentes shadcn/ui
